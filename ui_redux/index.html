@@ -105,9 +105,11 @@
           action.todo.name.toLowerCase().includes('bitcoin')
         ) {
           return alert("Nope, that's a bad idea.")
-        } else if (
+        }
+
+        if (
           action.type === ADD_GOAL &&
-          action.todo.name.toLowerCase().includes('bitcoin')
+          action.goal.name.toLowerCase().includes('bitcoin')
         ) {
           return alert("Nope, that's a bad idea.")
         }
@@ -186,7 +188,10 @@
         const input = document.getElementById('goal')
         const name = input.value
         input.value = ''
-
+        // store.dispatch(addGoalAction({
+        //   id: generateId(),
+        //   name,
+        // }))
         checkAndDispatch(store, addGoalAction({
           id: generateId(),
           name,
