@@ -99,7 +99,7 @@
         }
       }
 
-      function checkAndDispatch(store, action) {
+      const checker = (store) => (next) => (action) => {
         if (
           action.type === ADD_TODO &&
           action.todo.name.toLowerCase().includes('bitcoin')
@@ -113,14 +113,22 @@
         ) {
           return alert("Nope, that's a bad idea.")
         }
+        return next(action)
+      }
 
-        return store.dispatch(action)
+      const logger = (store) => (next) => (action) => {
+        console.group(action.type)
+          console.log('The action: ', action)
+          const result = next(action)
+          console.log('The new state: ', store.getState())
+        console.groupEnd()
+        return result
       }
 
       const store = Redux.createStore(Redux.combineReducers({
         todos,
         goals
-      }))
+      }), Redux.applyMiddleware(checker, logger))
 
       store.subscribe(() => {
         const { goals, todos } = store.getState()
@@ -173,7 +181,7 @@
         const name = input.value
         input.value = ''
 
-        checkAndDispatch(store, addTodoAction({
+        store.dispatch(addTodoAction({
           name,
           complete: false,
           id: generateId()
@@ -181,7 +189,7 @@
       }
 
       function toggleComplete (id) {
-        checkAndDispatch(store, toggleTodoAction(id))
+        store.dispatch(toggleTodoAction(id))
       }
 
       function addGoal () {
@@ -192,7 +200,7 @@
         //   id: generateId(),
         //   name,
         // }))
-        checkAndDispatch(store, addGoalAction({
+        store.dispatch(addGoalAction({
           id: generateId(),
           name,
         }))
@@ -216,7 +224,7 @@
         const node = document.createElement('li')
         const text = document.createTextNode(todo.name)
         const removeBtn = createRemoveButton(() => {
-          checkAndDispatch(store, removeTodoAction(todo.id))
+          store.dispatch(removeTodoAction(todo.id))
         })
         if (todo.complete) {
           const strike = document.createElement("S")
@@ -240,7 +248,7 @@
         const node = document.createElement('li')
         const text = document.createTextNode(goal.name)
         const removeBtn = createRemoveButton(() => {
-          checkAndDispatch(store, removeGoalAction(goal.id))
+          store.dispatch(removeGoalAction(goal.id))
         })
         node.appendChild(text)
         node.appendChild(removeBtn)
