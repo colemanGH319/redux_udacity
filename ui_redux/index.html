@@ -226,18 +226,20 @@
     class Todos extends React.Component {
       addItem = (e) => {
         e.preventDefault()
-        this.props.store.dispatch(handleAddTodo(this.input.value,
+        store.dispatch(handleAddTodo(this.input.value,
           () => { this.input.value = '' }))
       }
 
       removeItem = (todo) => {
-        this.props.store.dispatch(handleDeleteTodo(todo))
+        store.dispatch(handleDeleteTodo(todo))
       }
 
       toggleItem = (id) => {
-        this.props.store.dispatch(handleToggle(id))
+        store.dispatch(handleToggle(id))
       }
       render() {
+        const { store } = this.props
+        const { todos } = store.getState()
         return (
           <div>
             <h1>Todo List</h1>
@@ -249,7 +251,7 @@
             <button onClick={this.addItem}>Add Todo</button>
             <List
               toggle={this.toggleItem}
-              items={this.props.todos}
+              items={todos}
               remove={this.removeItem}
             />
           </div>
@@ -260,14 +262,16 @@
       addItem = (e) => {
         e.preventDefault()
 
-        this.props.store.dispatch(handleAddGoal(this.input.value, () => {
+        store.dispatch(handleAddGoal(this.input.value, () => {
           this.input.value = ''
         }))
       }
       removeItem = (goal) => {
-        this.props.store.dispatch(handleDeleteGoal(goal))
+        store.dispatch(handleDeleteGoal(goal))
       }
       render() {
+        const { store } = this.props
+        const { goals } = store.getState()
         return (
           <div>
             <h1>Goals</h1>
@@ -278,7 +282,7 @@
             />
             <button onClick={this.addItem}>Add Goal</button>
             <List
-              items={this.props.goals}
+              items={goals}
               remove={this.removeItem}
             />
           </div>
@@ -300,16 +304,54 @@
         }
         return (
           <div>
-            <Todos todos={todos} store={this.props.store} />
-            <Goals goals={goals} store={this.props.store} />
+            <Context.Consumer>
+              {(store) => (
+                <Todos store={store}/>
+              )}
+            </Context.Consumer>
+            <Context.Consumer>
+              {(store) => (
+                <Goals store={store}/>
+              )}
+            </Context.Consumer>
+
           </div>
         )
       }
     }
+
+    class ConnectedApp extends React.Component {
+      render() {
+        return (
+          <Context.Consumer>
+            {(store) => (
+              <App store={store}/>
+            )}
+          </Context.Consumer>
+        )
+      }
+    }
+
+    const Context = React.createContext()
+
+    class Provider extends React.Component {
+      render () {
+        return (
+          <Context.Provider value={this.props.store}>
+            {this.props.children}
+          </Context.Provider>
+        )
+      }
+    }
+
     ReactDOM.render(
-      <App store={store}/>,
+      <Provider store={store}>
+        <ConnectedApp/>
+      </Provider>,
       document.getElementById('app')
     )
+
+
   </script>
 
   <script type='text/javascript'>
