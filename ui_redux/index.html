@@ -62,6 +62,68 @@
         goals,
       }
     }
+
+    function handleAddTodo(name, callback) {
+
+      return (dispatch) => {
+        API.saveTodo(name)
+          .then((todo) => {
+            dispatch(addTodoAction(todo))
+            callback()
+          })
+          .catch(() => { alert('An error occurred. Please try again.')})
+        }
+    }
+
+    function handleDeleteTodo(todo) {
+      return (dispatch) => {
+        dispatch(removeTodoAction(todo.id))
+
+        return API.deleteTodo(todo.id)
+            .catch(() => {
+              dispatch(addTodoAction(todo))
+              alert("Todo was not removed successfully.")
+            })
+      }
+    }
+
+    function handleToggle(id) {
+
+      return (dispatch) => {
+        dispatch(toggleTodoAction(id))
+        return API.saveTodoToggle(id)
+              .catch(() => {
+                dispatch(toggleTodoAction(id))
+                alert("An error occurred. Please try again.")
+              })
+      }
+
+    }
+
+    function handleAddGoal(goal, callback) {
+      return (dispatch) => {
+        return API.saveGoal(goal)
+            .then((goal) => {
+              dispatch(addGoalAction(goal))
+              callback()
+            })
+            .catch(() => {
+              alert('An error occurred. Please try again.')
+            })
+      }
+    }
+
+    function handleDeleteGoal(goal) {
+      return (dispatch) => {
+        dispatch(removeGoalAction(goal.id))
+        return API.deleteGoal(goal.id)
+            .catch(() => {
+              dispatch(addGoalAction(goal))
+              alert('An error occurred. Please try again.')
+            })
+      }
+    }
+
     function todos (state = [], action) {
       switch(action.type) {
         case ADD_TODO :
@@ -126,7 +188,7 @@
       todos,
       goals,
       loading,
-    }), Redux.applyMiddleware(checker, logger))
+    }), Redux.applyMiddleware(ReduxThunk.default, checker, logger))
   </script>
 
   <script type='text/babel'>
@@ -152,32 +214,16 @@
     class Todos extends React.Component {
       addItem = (e) => {
         e.preventDefault()
-
-        API.saveTodo(this.input.value)
-          .then((todo) => {
-            this.props.store.dispatch(addTodoAction(todo))
-            this.input.value = ''
-          })
-          .catch(() => {
-            alert('An error occurred. Please try again.')
-          })
+        this.props.store.dispatch(handleAddTodo(this.input.value,
+          () => { this.input.value = '' }))
       }
 
       removeItem = (todo) => {
-        this.props.store.dispatch(removeTodoAction(todo.id))
-        return API.deleteTodo(todo.id)
-                .catch(() => {
-                  this.props.store.dispatch(addTodoAction(todo))
-                  alert("Todo was not removed successfully.")
-                })
+        this.props.store.dispatch(handleDeleteTodo(todo))
       }
+
       toggleItem = (id) => {
-        this.props.store.dispatch(toggleTodoAction(id))
-        return API.saveTodoToggle(id)
-              .catch(() => {
-                this.props.store.dispatch(toggleTodoAction(id))
-                alert("An error occurred. Please try again.")
-              })
+        this.props.store.dispatch(handleToggle(id))
       }
       render() {
         return (
@@ -202,22 +248,12 @@
       addItem = (e) => {
         e.preventDefault()
 
-        API.saveGoal(this.input.value)
-        .then((goal) => {
-          this.props.store.dispatch(addGoalAction(goal))
+        this.props.store.dispatch(handleAddGoal(this.input.value, () => {
           this.input.value = ''
-        })
-        .catch(() => {
-          alert('An error occurred. Please try again.')
-        })
+        }))
       }
       removeItem = (goal) => {
-        this.props.store.dispatch(removeGoalAction(goal.id))
-        return API.deleteGoal()
-                .catch(() => {
-                  alert("Goal did not successfully delete.")
-                  this.props.store.dispatch(addGoalAction(goal))
-                })
+        this.props.store.dispatch(handleDeleteGoal(goal))
       }
       render() {
         return (
