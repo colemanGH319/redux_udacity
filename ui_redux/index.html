@@ -7,6 +7,7 @@
   <script src='https://unpkg.com/react-dom@16.3.0-alpha.1/umd/react-dom.development.js'></script>
   <script src='https://unpkg.com/babel-standalone@6.15.0/babel.min.js'></script>
   <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
+  <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
 </head>
 <body>
   <div id='app'></div>
@@ -147,17 +148,21 @@
         </ul>
       )
     }
+
     class Todos extends React.Component {
       addItem = (e) => {
         e.preventDefault()
-        const name = this.input.value
-        this.input.value = ''
-        this.props.store.dispatch(addTodoAction({
-          name,
-          complete: false,
-          id: generateId()
-        }))
+
+        API.saveTodo(this.input.value)
+          .then((todo) => {
+            this.props.store.dispatch(addTodoAction(todo))
+            this.input.value = ''
+          })
+          .catch(() => {
+            alert('An error occurred. Please try again.')
+          })
       }
+
       removeItem = (todo) => {
         this.props.store.dispatch(removeTodoAction(todo.id))
         return API.deleteTodo(todo.id)
@@ -196,12 +201,15 @@
     class Goals extends React.Component {
       addItem = (e) => {
         e.preventDefault()
-        const name = this.input.value
-        this.input.value = ''
-        this.props.store.dispatch(addGoalAction({
-          id: generateId(),
-          name,
-        }))
+
+        API.saveGoal(this.input.value)
+        .then((goal) => {
+          this.props.store.dispatch(addGoalAction(goal))
+          this.input.value = ''
+        })
+        .catch(() => {
+          alert('An error occurred. Please try again.')
+        })
       }
       removeItem = (goal) => {
         this.props.store.dispatch(removeGoalAction(goal.id))
